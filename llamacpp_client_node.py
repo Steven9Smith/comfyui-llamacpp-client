@@ -591,11 +591,14 @@ class LlamaCppClientNode:
         }
         
         for param_key, api_key in param_mapping.items():
-            if param_key in kwargs and kwargs[param_key] is not None:
-                if param_key == "stop_sequences":
-                    params[api_key] = kwargs[param_key]
-                else:
-                    params[api_key] = kwargs[param_key]
+            value = kwargs.get(param_key,None)
+            if value == "" or value is None:
+                continue
+
+            if param_key == "stop_sequences":
+                params[api_key] = kwargs[param_key]
+            else:
+                params[api_key] = kwargs[param_key]
         
         # Clean parameters
         params = self._clean_params(params)
