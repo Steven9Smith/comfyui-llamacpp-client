@@ -575,6 +575,7 @@ class LlamaCppClientNode:
             "stream": "stream",
             "n_probs": "n_probs",
             "min_keep": "min_keep",
+            "model": "model",
             "post_sampling_probs": "post_sampling_probs",
             "return_tokens": "return_tokens",
             "timings_per_token": "timings_per_token",
