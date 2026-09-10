@@ -519,9 +519,9 @@ class LlamaCppClientNode:
                 continue
                 
             # Handle string parameters that should be parsed as JSON
-            if key in ['stop_sequences', 'logit_bias', 'samplers', 'messages', 'tools', 
+            if key in ['stop_sequences', 'logit_bias', 'samplers', 'messages', 'tools',
                       'response_format', 'input_extra', 'documents', 'lora', 'response_fields',
-                      'image_data', 'dry_sequence_breakers', 'tokens']:
+                      'dry_sequence_breakers', 'tokens']:
                 if isinstance(value, str) and value.strip():
                     try:
                         cleaned[key] = json.loads(value)
@@ -539,9 +539,36 @@ class LlamaCppClientNode:
         """Handle /completion endpoint."""
         url = f"{server_url}/completion"
         
-        # Build parameters
+        # Handle multimodal image data
+        image_data = kwargs.get("image_data", "[]")
+        if isinstance(image_data, str):
+            try:
+                image_data = json.loads(image_data)
+            except json.JSONDecodeError:
+                image_data = []
+        
+        if image_data and isinstance(image_data, list) and len(image_data) > 0:
+            # Fetch the media marker from the running server
+            try:
+                props = requests.get(f"{server_url}/props", timeout=10).json()
+                media_marker = props.get("media_marker", "<__media__>")
+            except Exception:
+                media_marker = "<__media__>"
+            
+            # Insert one marker per image into the prompt
+            prompt_with_markers = prompt + media_marker * len(image_data)
+            
+            # Restructure prompt into the JSON object format the API expects
+            prompt_payload = {
+                "prompt_string": prompt_with_markers,
+                "multimodal_data": image_data
+            }
+        else:
+            prompt_payload = prompt
+        
         params = {
-            "prompt": prompt,
+            "prompt": prompt_payload,
+            "model": kwargs.get("model", "default"),
         }
         
         # Add all relevant parameters
@@ -575,7 +602,6 @@ class LlamaCppClientNode:
             "stream": "stream",
             "n_probs": "n_probs",
             "min_keep": "min_keep",
-            "model": "model",
             "post_sampling_probs": "post_sampling_probs",
             "return_tokens": "return_tokens",
             "timings_per_token": "timings_per_token",
@@ -588,24 +614,19 @@ class LlamaCppClientNode:
             "t_max_predict_ms": "t_max_predict_ms",
             "lora": "lora",
             "response_fields": "response_fields",
-            "image_data": "image_data",
         }
         
-        for param_key, api_key in param_mapping.items():
-            value = kwargs.get(param_key,None)
+        for param_key, field_name in param_mapping.items():
+            value = kwargs.get(param_key, None)
             if value == "" or value is None:
                 continue
-
-            if param_key == "stop_sequences":
-                params["stop"] = kwargs[param_key]
-            else:
-                params[api_key] = kwargs[param_key]
+            params[field_name] = value
         
         # Clean parameters
         params = self._clean_params(params)
         
         return self._make_request(url, params, kwargs.get("api_key", ""), kwargs.get("timeout", 600))
-    
+
     def _handle_chat_completions(self, server_url: str, **kwargs):
         """Handle /v1/chat/completions endpoint."""
         url = f"{server_url}/v1/chat/completions"
