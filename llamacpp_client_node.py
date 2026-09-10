@@ -550,7 +550,7 @@ class LlamaCppClientNode:
         if image_data and isinstance(image_data, list) and len(image_data) > 0:
             # Fetch the media marker from the running server
             try:
-                props = requests.get(f"{server_url}/props", timeout=10).json()
+                props = requests.post(f"{server_url}/props", timeout=10).json()
                 media_marker = props.get("media_marker", "<__media__>")
             except Exception:
                 media_marker = "<__media__>"
