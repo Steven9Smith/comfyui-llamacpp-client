@@ -538,7 +538,6 @@ class LlamaCppClientNode:
     def _handle_completion(self, server_url: str, prompt: str, **kwargs):
         """Handle /completion endpoint."""
         url = f"{server_url}/completion"
-        print(f"[LlamaCpp] image_data raw: {repr(kwargs.get('image_data'))}")
         
         # Handle multimodal image data
         image_data = kwargs.get("image_data", "[]")
@@ -554,7 +553,10 @@ class LlamaCppClientNode:
                 props = requests.post(f"{server_url}/props", timeout=10).json()
                 media_marker = props.get("media_marker", "<__media__>")
                 print(f"[LlamaCpp] media_marker: {repr(media_marker)}")
+                print(f"[LlamaCpp] props response keys: {list(props.keys()) if isinstance(props, dict) else type(props)}")
+
             except Exception:
+                print("[:;amaCpp]: Failed to find media, using default!")
                 media_marker = "<__media__>"
             
             # Insert one marker per image into the prompt
@@ -576,6 +578,7 @@ class LlamaCppClientNode:
         # Add all relevant parameters
         param_mapping = {
             "n_predict": "n_predict",
+            "temperature": "temperature",
             "top_k": "top_k",
             "top_p": "top_p",
             "min_p": "min_p",
