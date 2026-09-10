@@ -538,6 +538,7 @@ class LlamaCppClientNode:
     def _handle_completion(self, server_url: str, prompt: str, **kwargs):
         """Handle /completion endpoint."""
         url = f"{server_url}/completion"
+        print(f"[LlamaCpp] image_data raw: {repr(kwargs.get('image_data'))}")
         
         # Handle multimodal image data
         image_data = kwargs.get("image_data", "[]")
