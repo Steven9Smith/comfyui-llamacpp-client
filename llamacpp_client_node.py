@@ -553,6 +553,7 @@ class LlamaCppClientNode:
             try:
                 props = requests.post(f"{server_url}/props", timeout=10).json()
                 media_marker = props.get("media_marker", "<__media__>")
+                print(f"[LlamaCpp] media_marker: {repr(media_marker)}")
             except Exception:
                 media_marker = "<__media__>"
             
@@ -575,7 +576,6 @@ class LlamaCppClientNode:
         # Add all relevant parameters
         param_mapping = {
             "n_predict": "n_predict",
-            "temperature": "temperature", 
             "top_k": "top_k",
             "top_p": "top_p",
             "min_p": "min_p",
