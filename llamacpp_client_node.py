@@ -624,7 +624,7 @@ class LlamaCppClientNode:
         
         # Clean parameters
         params = self._clean_params(params)
-        
+        print(f"[LlamaCpp] FINAL PARAMS: {json.dumps(params, indent=2)[:2000]}")
         return self._make_request(url, params, kwargs.get("api_key", ""), kwargs.get("timeout", 600))
 
     def _handle_chat_completions(self, server_url: str, **kwargs):
