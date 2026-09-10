@@ -565,7 +565,7 @@ class LlamaCppClientNode:
             if media_marker == "<__media__>":
                 print(f"[LlamaCpp] WARNING: using default marker, model may not process images")
             
-            print(f"[LlamaCpp] media_marker: {repr(media_marker)}")
+            #print(f"[LlamaCpp] media_marker: {repr(media_marker)}")
             
             # Insert one marker per image into the prompt
             prompt_with_markers = prompt + media_marker * len(image_data)
@@ -636,7 +636,7 @@ class LlamaCppClientNode:
         
         # Clean parameters
         params = self._clean_params(params)
-        print(f"[LlamaCpp] FINAL PARAMS: {json.dumps(params, indent=2)[:2000]}")
+        #print(f"[LlamaCpp] FINAL PARAMS: {json.dumps(params, indent=2)[:2000]}")
         return self._make_request(url, params, kwargs.get("api_key", ""), kwargs.get("timeout", 600))
 
     def _handle_chat_completions(self, server_url: str, **kwargs):
