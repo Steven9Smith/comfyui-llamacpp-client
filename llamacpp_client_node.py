@@ -452,6 +452,11 @@ class LlamaCppClientNode:
                     "multiline": True,
                     "tooltip": "JSON array of image data objects"
                 }),
+                "media_marker": ("STRING", {
+                    "default": "",
+                    "multiline": False,
+                    "tooltip": "MTMD media marker string from your server (leave empty to auto-detect)"
+                }),
             }
         }
     
@@ -548,16 +553,19 @@ class LlamaCppClientNode:
                 image_data = []
         
         if image_data and isinstance(image_data, list) and len(image_data) > 0:
-            # Fetch the media marker from the running server
-            try:
-                props = requests.get(f"{server_url}/props", timeout=10).json()
-                media_marker = props.get("media_marker", "<__media__>")
-                print(f"[LlamaCpp] media_marker: {repr(media_marker)}")
-                print(f"[LlamaCpp] props response keys: {list(props.keys()) if isinstance(props, dict) else type(props)}")
-
-            except Exception:
-                print("[:;amaCpp]: Failed to find media, using default!")
-                media_marker = "<__media__>"
+            # Use user-provided marker, or try to fetch from server
+            media_marker = kwargs.get("media_marker", "").strip()
+            if not media_marker:
+                try:
+                    props = requests.get(f"{server_url}/props?model={kwargs.get('model', '')}", timeout=10).json()
+                    media_marker = props.get("media_marker", "<__media__>")
+                except Exception:
+                    media_marker = "<__media__>"
+            
+            if media_marker == "<__media__>":
+                print(f"[LlamaCpp] WARNING: using default marker, model may not process images")
+            
+            print(f"[LlamaCpp] media_marker: {repr(media_marker)}")
             
             # Insert one marker per image into the prompt
             prompt_with_markers = prompt + media_marker * len(image_data)
